@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Same Hour, Five Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1B2B;
+    --panel:#16263B;
+    --panel-hi:#1D3149;
+    --ink:#E8EDF2;
+    --ink-dim:#8FA3B8;
+    --line:#2A3E56;
+    --amber:#E8A33D;
+    --cyan:#5FB3B3;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 20% -10%, rgba(232,163,61,0.08), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 90% 0%, rgba(95,179,179,0.07), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:40px 24px 80px;
+  }
+  .wrap{ max-width:1080px; margin:0 auto; }
+
+  header{ margin-bottom:36px; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(28px, 4vw, 42px);
+    font-weight:700;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .sub{ color:var(--ink-dim); font-size:15px; max-width:520px; line-height:1.5; }
+
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    align-items:flex-end;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 22px;
+    margin-bottom:34px;
+  }
+  .field{ display:flex; flex-direction:column; gap:8px; flex:1; min-width:220px; }
+  .field label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .field input[type="text"]{
+    background:var(--panel-hi);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    outline:none;
+  }
+  .field input[type="text"]:focus{ border-color:var(--amber); }
+
+  .hour-row{ display:flex; align-items:center; gap:14px; }
+  .hour-row input[type="range"]{
+    -webkit-appearance:none;
+    flex:1;
+    height:4px;
+    border-radius:2px;
+    background:linear-gradient(90deg, var(--cyan), var(--amber));
+    outline:none;
+  }
+  .hour-row input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px; height:16px;
+    border-radius:50%;
+    background:var(--ink);
+    border:2px solid var(--panel);
+    cursor:pointer;
+    box-shadow:0 0 0 2px var(--amber);
+  }
+  .hour-readout{
+    font-family:'JetBrains Mono', monospace;
+    font-size:16px;
+    font-weight:700;
+    color:var(--amber);
+    min-width:78px;
+    text-align:right;
+  }
+
+  .go-btn{
+    background:var(--amber);
+    color:#1a1206;
+    border:none;
+    border-radius:8px;
+    padding:11px 20px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    height:41px;
+  }
+  .go-btn:hover{ filter:brightness(1.08); }
+  .go-btn:disabled{ opacity:0.6; cursor:default; }
+
+  .loc-line{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--ink-dim);
+    margin:-18px 0 26px;
+    min-height:16px;
+  }
+  .loc-line .ok{ color:var(--cyan); }
+  .loc-line .err{ color:#E86A5C; }
+
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:14px;
+  }
+  @media (max-width:900px){ .cards{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:520px){ .cards{ grid-template-columns:1fr; } }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 16px 18px;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:10px;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg, var(--cyan), var(--amber));
+    opacity:0.7;
+  }
+  .card .day{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:15px;
+  }
+  .card .date{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:0.04em;
+  }
+
+  .dial{ width:56px; height:56px; margin:6px 0; }
+
+  .temp{
+    font-family:'JetBrains Mono', monospace;
+    font-size:32px;
+    font-weight:700;
+    line-height:1;
+  }
+  .cond{ font-size:13px; color:var(--ink-dim); min-height:18px; }
+
+  .meta{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    border-top:1px solid var(--line);
+    padding-top:10px;
+    margin-top:4px;
+  }
+  .meta span b{ color:var(--ink); font-weight:600; }
+
+  .outfit{
+    width:100%;
+    font-size:12.5px;
+    color:var(--ink);
+    background:var(--panel-hi);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    line-height:1.4;
+  }
+
+  .sunrise{
+    width:100%;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-dim);
+  }
+  .sunrise b{ color:var(--amber); font-weight:700; }
+
+  .skeleton{ opacity:0.35; }
+  footer{
+    margin-top:34px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    text-align:center;
+  }
+  footer a{ color:var(--cyan); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Weather · Fixed Hour Readout</div>
+    <h1>Same Hour, Five Days</h1>
+    <div class="sub">Pick a place and a time of day. See how that exact hour plays out across the next five days — no scrolling through 120 hourly rows.</div>
+  </header>
+
+  <div class="controls">
+    <div class="field" style="flex:1.4;">
+      <label for="loc">Location</label>
+      <input type="text" id="loc" placeholder="City, e.g. Reston, VA" value="Holly Springs, NC">
+    </div>
+    <div class="field" style="flex:1.6;">
+      <label for="hour">Time of day: <span id="hourLabel"></span></label>
+      <div class="hour-row">
+        <input type="range" id="hour" min="0" max="23" value="5">
+        <span class="hour-readout" id="hourReadout"></span>
+      </div>
+    </div>
+    <button class="go-btn" id="goBtn">Get forecast</button>
+  </div>
+
+  <div class="loc-line" id="locLine"></div>
+
+  <div class="cards" id="cards"></div>
+
+  <footer>Data from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> · temperatures in °F</footer>
+</div>
+
+<script>
+const hourEl = document.getElementById('hour');
+const hourLabelEl = document.getElementById('hourLabel');
+const hourReadoutEl = document.getElementById('hourReadout');
+const locEl = document.getElementById('loc');
+const locLineEl = document.getElementById('locLine');
+const cardsEl = document.getElementById('cards');
+const goBtn = document.getElementById('goBtn');
+
+function fmtHour(h){
+  const period = h >= 12 ? 'PM' : 'AM';
+  let h12 = h % 12; if(h12 === 0) h12 = 12;
+  return h12 + ':00 ' + period;
+}
+function syncHourLabel(){
+  const h = parseInt(hourEl.value, 10);
+  hourLabelEl.textContent = fmtHour(h);
+  hourReadoutEl.textContent = fmtHour(h);
+}
+hourEl.addEventListener('input', syncHourLabel);
+syncHourLabel();
+
+// WMO weather code -> {label, svg icon builder}
+function weatherMeta(code){
+  const map = {
+    0:  ['Clear sky', iconSun],
+    1:  ['Mostly clear', iconSun],
+    2:  ['Partly cloudy', iconCloudSun],
+    3:  ['Overcast', iconCloud],
+    45: ['Fog', iconFog],
+    48: ['Fog', iconFog],
+    51: ['Light drizzle', iconRain],
+    53: ['Drizzle', iconRain],
+    55: ['Dense drizzle', iconRain],
+    56: ['Freezing drizzle', iconRain],
+    57: ['Freezing drizzle', iconRain],
+    61: ['Light rain', iconRain],
+    63: ['Rain', iconRain],
+    65: ['Heavy rain', iconRain],
+    66: ['Freezing rain', iconRain],
+    67: ['Freezing rain', iconRain],
+    71: ['Light snow', iconSnow],
+    73: ['Snow', iconSnow],
+    75: ['Heavy snow', iconSnow],
+    77: ['Snow grains', iconSnow],
+    80: ['Rain showers', iconRain],
+    81: ['Rain showers', iconRain],
+    82: ['Violent showers', iconRain],
+    85: ['Snow showers', iconSnow],
+    86: ['Snow showers', iconSnow],
+    95: ['Thunderstorm', iconStorm],
+    96: ['Thunderstorm', iconStorm],
+    99: ['Thunderstorm', iconStorm],
+  };
+  return map[code] || ['Unknown', iconCloud];
+}
+function svgWrap(inner){
+  return '<svg class="dial" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>';
+}
+function iconSun(){
+  return svgWrap('<circle cx="28" cy="28" r="11" fill="var(--amber)"/>' +
+    Array.from({length:8}).map((_,i)=>{
+      const a = i * Math.PI/4;
+      const x1 = 28 + Math.cos(a)*17, y1 = 28 + Math.sin(a)*17;
+      const x2 = 28 + Math.cos(a)*23, y2 = 28 + Math.sin(a)*23;
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round"/>`;
+    }).join(''));
+}
+function iconCloudSun(){
+  return svgWrap('<circle cx="22" cy="22" r="8" fill="var(--amber)"/>' +
+    '<ellipse cx="32" cy="34" rx="16" ry="11" fill="var(--ink-dim)" opacity="0.85"/>');
+}
+function iconCloud(){
+  return svgWrap('<ellipse cx="28" cy="32" rx="18" ry="12" fill="var(--ink-dim)"/>');
+}
+function iconFog(){
+  return svgWrap(Array.from({length:4}).map((_,i)=>
+    `<line x1="10" y1="${18+i*8}" x2="46" y2="${18+i*8}" stroke="var(--ink-dim)" stroke-width="3" stroke-linecap="round" opacity="${0.9 - i*0.15}"/>`
+  ).join(''));
+}
+function iconRain(){
+  return svgWrap('<ellipse cx="28" cy="24" rx="16" ry="10" fill="var(--ink-dim)"/>' +
+    Array.from({length:3}).map((_,i)=>
+      `<line x1="${18+i*10}" y1="36" x2="${14+i*10}" y2="46" stroke="var(--cyan)" stroke-width="3" stroke-linecap="round"/>`
+    ).join(''));
+}
+function iconSnow(){
+  return svgWrap('<ellipse cx="28" cy="22" rx="16" ry="10" fill="var(--ink-dim)"/>' +
+    Array.from({length:3}).map((_,i)=>
+      `<circle cx="${18+i*10}" cy="42" r="2.4" fill="var(--ink)"/>`
+    ).join(''));
+}
+function iconStorm(){
+  return svgWrap('<ellipse cx="28" cy="20" rx="16" ry="10" fill="var(--ink-dim)"/>' +
+    '<polygon points="30,30 22,44 27,44 24,54 36,36 30,36" fill="var(--amber)"/>');
+}
+
+function fmtSunrise(iso){
+  if(!iso) return '—';
+  const timePart = iso.split('T')[1]; // "HH:MM"
+  const [hh, mm] = timePart.split(':').map(Number);
+  const period = hh >= 12 ? 'PM' : 'AM';
+  let h12 = hh % 12; if(h12 === 0) h12 = 12;
+  return `${h12}:${String(mm).padStart(2,'0')} ${period}`;
+}
+
+function outfitSuggestion(tempF, precipPct){
+  let base;
+  if(tempF < 20)       base = 'Heavy coat, gloves, hat, scarf';
+  else if(tempF < 32)  base = 'Winter coat + layers underneath';
+  else if(tempF < 45)  base = 'Warm jacket, long sleeves';
+  else if(tempF < 55)  base = 'Light jacket or heavy sweater';
+  else if(tempF < 65)  base = 'Long sleeves, light layer';
+  else if(tempF < 75)  base = 'T-shirt, jeans or light pants';
+  else if(tempF < 85)  base = 'Shorts, breathable tee';
+  else                 base = 'Light, breathable fabrics, sun protection';
+
+  if(precipPct >= 50) base += ' — bring an umbrella';
+  return base;
+}
+
+  cardsEl.innerHTML = Array.from({length:5}).map(()=>`
+    <div class="card skeleton">
+      <div class="day">···</div>
+      <div class="date">···</div>
+      <div class="temp">--°</div>
+      <div class="cond">Loading</div>
+      <div class="meta"><span>Rain <b>--</b></span><span>Humidity <b>--</b></span></div>
+      <div class="sunrise">☀ Sunrise <b>--:--</b></div>
+      <div class="outfit">···</div>
+    </div>`).join('');
+}
+
+async function geocode(query){
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('Geocoding request failed');
+  const data = await res.json();
+  if(!data.results || !data.results.length) throw new Error('Location not found');
+  const r = data.results[0];
+  return { lat: r.latitude, lon: r.longitude, label: [r.name, r.admin1, r.country].filter(Boolean).join(', ') };
+}
+
+async function getForecast(lat, lon){
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weathercode` +
+    `&daily=sunrise` +
+    `&temperature_unit=fahrenheit&forecast_days=6&timezone=auto`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('Forecast request failed');
+  return res.json();
+}
+
+function pickHourlySlices(forecast, targetHour){
+  const times = forecast.hourly.time;
+  const temps = forecast.hourly.temperature_2m;
+  const humids = forecast.hourly.relative_humidity_2m;
+  const precs = forecast.hourly.precipitation_probability;
+  const codes = forecast.hourly.weathercode;
+
+  const sunriseMap = {};
+  if(forecast.daily && forecast.daily.time){
+    forecast.daily.time.forEach((d, idx) => {
+      sunriseMap[d] = forecast.daily.sunrise[idx];
+    });
+  }
+
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+
+  const seenDates = new Set();
+  const results = [];
+
+  for(let i=0; i<times.length; i++){
+    const t = times[i]; // "YYYY-MM-DDTHH:00"
+    const [datePart, timePart] = t.split('T');
+    const hour = parseInt(timePart.slice(0,2), 10);
+    if(hour !== targetHour) continue;
+    if(seenDates.has(datePart)) continue;
+
+    // skip today if that hour has already passed
+    if(datePart === todayStr && hour < now.getHours()) continue;
+
+    seenDates.add(datePart);
+    results.push({
+      date: datePart,
+      temp: temps[i],
+      humidity: humids[i],
+      precip: precs[i],
+      code: codes[i],
+      sunrise: sunriseMap[datePart] || null,
+    });
+    if(results.length >= 5) break;
+  }
+  return results;
+}
+
+function renderCards(slices, locationLabel, targetHour){
+  const dayFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
+  const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+
+  cardsEl.innerHTML = slices.map(s => {
+    const d = new Date(s.date + 'T00:00:00');
+    const [label, iconFn] = weatherMeta(s.code);
+    return `
+      <div class="card">
+        <div class="day">${dayFmt.format(d)}</div>
+        <div class="date">${dateFmt.format(d)}</div>
+        ${iconFn()}
+        <div class="temp">${Math.round(s.temp)}°</div>
+        <div class="cond">${label}</div>
+        <div class="meta">
+          <span>Rain <b>${Math.round(s.precip)}%</b></span>
+          <span>Humidity <b>${Math.round(s.humidity)}%</b></span>
+        </div>
+        <div class="sunrise">☀ Sunrise <b>${fmtSunrise(s.sunrise)}</b></div>
+        <div class="outfit">${outfitSuggestion(s.temp, s.precip)}</div>
+      </div>`;
+  }).join('');
+}
+
+async function run(){
+  const query = locEl.value.trim();
+  if(!query){
+    locLineEl.innerHTML = '<span class="err">Enter a location first.</span>';
+    return;
+  }
+  goBtn.disabled = true;
+  locLineEl.textContent = 'Looking up location…';
+  skeletonCards();
+
+  try{
+    const place = await geocode(query);
+    locLineEl.innerHTML = `<span class="ok">${place.label}</span> · lat ${place.lat.toFixed(2)}, lon ${place.lon.toFixed(2)}`;
+
+    const targetHour = parseInt(hourEl.value, 10);
+    const forecast = await getForecast(place.lat, place.lon);
+    const slices = pickHourlySlices(forecast, targetHour);
+
+    if(!slices.length){
+      cardsEl.innerHTML = '<div class="loc-line err">No matching hourly data returned — try again.</div>';
+    } else {
+      renderCards(slices, place.label, targetHour);
+    }
+  } catch(err){
+    locLineEl.innerHTML = `<span class="err">${err.message}</span>`;
+    cardsEl.innerHTML = '';
+  } finally {
+    goBtn.disabled = false;
+  }
+}
+
+goBtn.addEventListener('click', run);
+locEl.addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
+
+// initial load
+run();
+</script>
+</body>
+</html>
