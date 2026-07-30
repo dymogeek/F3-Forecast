@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Same Hour, Five Days</title>
+<title>F3 Forecast - Your gloomy forecast for the next 5 days.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -228,9 +228,9 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">Weather · Fixed Hour Readout</div>
-    <h1>Same Hour, Five Days</h1>
-    <div class="sub">Pick a place and a time of day. See how that exact hour plays out across the next five days — no scrolling through 120 hourly rows.</div>
+    <div class="eyebrow">your gloomy forecast for the next 5 days</div>
+    <h1>F3 Forecast</h1>
+    <div class="sub">Pick a place and a time of day. Remember, F3 is rain or shine.</div>
   </header>
 
   <div class="controls">
@@ -252,7 +252,7 @@
 
   <div class="cards" id="cards"></div>
 
-  <footer>Data from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> · temperatures in °F</footer>
+  <footer>Data from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> · temperatures in °F · clothing options from "Half Marathon" by Jeff Galloway</footer>
 </div>
 
 <script>
@@ -363,16 +363,16 @@ function fmtSunrise(iso){
 
 function outfitSuggestion(tempF, precipPct){
   let base;
-  if(tempF < 20)       base = 'Heavy coat, gloves, hat, scarf';
-  else if(tempF < 32)  base = 'Winter coat + layers underneath';
-  else if(tempF < 45)  base = 'Warm jacket, long sleeves';
-  else if(tempF < 55)  base = 'Light jacket or heavy sweater';
-  else if(tempF < 65)  base = 'Long sleeves, light layer';
-  else if(tempF < 75)  base = 'T-shirt, jeans or light pants';
-  else if(tempF < 85)  base = 'Shorts, breathable tee';
-  else                 base = 'Light, breathable fabrics, sun protection';
+  if(tempF < 9)       base = '2 medium or heavy weight long sleeve shirts, thick tights, thick underwear, warm up suit, gloves and thick mittens. Also, ski mask, vaseline over exposed skin, and a hat over both ears.';
+  else if(tempF < 19)  base = 'long sleeve medium weight shirt, medium&sol;heavy weight shirt, tights and shorts, wind breaker suit, thick mittens and a hat';
+  else if(tempF < 29)  base = 'long sleeve medium weight shirt, and another t-shirt, tights and shorts, mittens or gloves and a hat';
+  else if(tempF < 39)  base = 'long sleeve medium weight shirt and another t-shirt, tights and shorts, mittens or gloves and a hat over both ears';
+  else if(tempF < 49)  base = 'long sleeve lightweight shirt, shorts&sol;tights, mittens and gloves';
+  else if(tempF < 59)  base = 't-shirt and shorts';
+  else if(tempF < 60)  base = 'tank top or singlet, and shorts';
+  else                 base = 'Light, breathable fabrics';
 
-  if(precipPct >= 50) base += ' — bring an umbrella';
+  if(precipPct >= 50) base += ' — get ready to get wet';
   return base;
 }
 
